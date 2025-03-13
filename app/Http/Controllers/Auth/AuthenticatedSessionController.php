@@ -1,5 +1,3 @@
-<?php
-
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -10,26 +8,22 @@ use App\Models\User;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): JsonResponse
     {
         $request->authenticate();
 
-        $user = User::where('email', $request->email)->first();
+        // Eager load roles untuk menghindari N+1
+        $user = User::with('roles')->where('email', $request->email)->first();
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Successfully logged in',
             'token' => $token,
-            'user' => $user->load('roles')
+            'user' => $user,
+            'roles' => $user->getRoleNames(), // Ambil role names
         ]);
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
