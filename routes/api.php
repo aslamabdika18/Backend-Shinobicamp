@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\API\{
     CategorycampController,
     TeamController,
@@ -28,6 +29,14 @@ Route::prefix('auth')->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
         ->middleware('auth:sanctum')
         ->name('auth.logout');
+
+    // Endpoint untuk mendapatkan data user yang terautentikasi
+    Route::get('/user', function (Request $request) {
+        return response()->json([
+            'user' => $request->user(),
+            'roles' => $request->user()->roles, // Sesuaikan dengan relasi roles di model User
+        ]);
+    })->middleware('auth:sanctum')->name('auth.user');
 });
 
 // Protected routes yang membutuhkan authentication
@@ -47,5 +56,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Routes untuk admin dan coach
     Route::middleware('role:admin,coach')->group(function () {
         Route::apiResource('events', EventController::class)->only(['index', 'show']);
+        Route::apiResource('coachprofiles', CoachController::class)->only(['index', 'show']);
+        Route::apiResource('teams', TeamController::class)->only(['index', 'show']);
+        Route::apiResource('registerevents', RegistereventController::class)->only(['index', 'show']);
+        Route::apiResource('payments', PaymentController::class)->only(['index', 'show']);
+        Route::apiResource('categorycamps', CategorycampController::class)->only(['index', 'show']);
     });
 });
